@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>command</key>
+		<string>waitForElement</string>
+		<key>viewXPath</key>
+		<string>//UINavigationItemView[title="UICatalog"]</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>simulateTouch</string>
+		<key>viewXPath</key>
+		<string>//UITableViewCell[text="TextFields"]</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>waitForElement</string>
+		<key>viewXPath</key>
+		<string>//UINavigationItemView[title="TextFields"]</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>simulateTouch</string>
+		<key>viewXPath</key>
+		<string>//UINavigationButton[title="Edit"]</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>setText</string>
+		<key>viewXPath</key>
+		<string>/./descendant::UITextField[1]</string>
+		<key>text</key>
+		<string>text 1</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>setText</string>
+		<key>viewXPath</key>
+		<string>/./descendant::UITextField[2]</string>
+		<key>text</key>
+		<string>text 2</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>setText</string>
+		<key>viewXPath</key>
+		<string>/./descendant::UITextField[3]</string>
+		<key>text</key>
+		<string>text 3</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>touchBackItem</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>pause</string>
+		<key>seconds</key>
+		<string>9</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>outputView</string>
+	</dict>
+	<dict>
+		<key>command</key>
+		<string>pause</string>
+		<key>seconds</key>
+		<string>22</string>
+	</dict>
+
+</array>
+</plist>
