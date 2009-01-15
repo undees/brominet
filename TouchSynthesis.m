@@ -6,7 +6,7 @@
 //  Copyright 2008 Matt Gallagher. All rights reserved.
 //
 
-#ifdef SCRIPT_DRIVEN_TEST_MODE_ENABLED
+#ifdef BROMINE_ENABLED
 
 #import "TouchSynthesis.h"
 
@@ -152,5 +152,5 @@
 
 @end
 
-#endif // SCRIPT_DRIVEN_TEST_MODE_ENABLED
+#endif // BROMINE_ENABLED
 
