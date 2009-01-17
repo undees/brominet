@@ -9,12 +9,13 @@
 #ifdef BROMINE_ENABLED
 
 #import "ScriptRunner.h"
-#import "UIView+XMLDescription.h"
-#import "UIApplication+XMLDescription.h"
+#import "XMLDescription.h"
 #import "XPathQuery.h"
 #import "TouchSynthesis.h"
 
 const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
+const float MAX_WAIT_ATTEMPTS = 60;
+const float WAIT_ATTEMPT_DELAY = 0.25;
 
 @implementation ScriptRunner
 
@@ -122,6 +123,9 @@ const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 	return views;
 }
 
+#pragma mark -
+#pragma mark Available test commands
+
 //
 // outputView
 //
@@ -169,6 +173,9 @@ const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 // Required parameters:
 //	viewXPath (search for views matching this XPath)
 //
+// Optional paramter:
+//	count (wait for a specified number of elements matching viewXPath)
+//
 - (void) waitForElement: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	if (viewXPath == nil)
@@ -177,33 +184,63 @@ const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 		exit(1);
 	}
 	
-	NSNumber *numberOfCalls = [command objectForKey:@"numberOfCalls"];
-	if (numberOfCalls == nil) {
-		numberOfCalls = [NSNumber numberWithInt:1];
-		printf("=== waitForElement\n    viewXPath:\n        %s\n ",
-			   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding]
+	NSNumber *requiredCount = [command objectForKey:@"count"];
+	
+	NSString *requiredCountMessage;
+	if(requiredCount) {
+		requiredCountMessage = [requiredCount stringValue];
+	}
+	else {
+		requiredCountMessage = @"at least one";
+	}
+	
+	NSNumber *numberOfAttempts = [command objectForKey:@"numberOfCalls"];
+	if (numberOfAttempts == nil) {
+		numberOfAttempts = [NSNumber numberWithInt:1];
+		printf("=== waitForElement\n    viewXPath:\n        %s\n    count:\n        %s\n",
+			   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding],
+			   [requiredCountMessage cStringUsingEncoding:NSUTF8StringEncoding]
 			   );
 		
 	}
 		
-	printf("attempt %d\n", [numberOfCalls intValue]);
+	printf("attempt %d\n", [numberOfAttempts intValue]);
 
 	NSArray *views = [self viewsForXPath:viewXPath];
-	if([views count] == 0) {
+	
+	BOOL foundElements = NO;
+	if(requiredCount) {
+		foundElements = [views count] == [requiredCount integerValue];
+	}
+	else {
+		foundElements = [views count] != 0;
+	}
+	
+	if(!foundElements) {
 		
-		if ([numberOfCalls integerValue] == 30) {
-			fprintf(
-					stderr,
-					"### TIMEOUT: couldn't find elements with xpath '%s'\n",
-					[viewXPath cStringUsingEncoding:NSUTF8StringEncoding],
-					[views count]);
+		if ([numberOfAttempts integerValue] == MAX_WAIT_ATTEMPTS) {
+			if(requiredCount) {
+				fprintf(
+						stderr,
+						"### TIMEOUT: couldn't find specified number of elements: %d\n with xpath '%s'\n found: %d\n",
+						[requiredCount intValue],
+						[viewXPath cStringUsingEncoding:NSUTF8StringEncoding],
+						[views count]);
+				
+			}
+			else {
+				fprintf(
+						stderr,
+						"### TIMEOUT: couldn't find elements with xpath '%s'\n",
+						[viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
+			}
 			exit(1);
 		}
 		else {
 			NSMutableDictionary *newCommand = [NSMutableDictionary dictionaryWithDictionary:command];
-			[newCommand setValue:[NSNumber numberWithInt:([numberOfCalls intValue] + 1)] forKey:@"numberOfCalls"];
+			[newCommand setValue:[NSNumber numberWithInt:([numberOfAttempts intValue] + 1)] forKey:@"numberOfCalls"];
 			[scriptCommands insertObject:newCommand atIndex:1];
-			scriptRunnerInterCommandDelay = 1.0;
+			scriptRunnerInterCommandDelay = WAIT_ATTEMPT_DELAY;
 		}
 	}
 }
@@ -281,9 +318,6 @@ const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 	}
 	
 	UIView *view = [views objectAtIndex:0];
-	NSLog(@"%@",view);
-	NSLog(@"%@",[view superclass]);
-	NSLog(@"%@",[[view superclass] superclass]);
 	
 	[self performTouchInView:view];
 	
@@ -512,6 +546,7 @@ const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 	scriptRunnerInterCommandDelay = [seconds floatValue];
 }
 
+#pragma mark -
 
 //
 // runCommand

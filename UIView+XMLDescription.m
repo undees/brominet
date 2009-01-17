@@ -8,12 +8,21 @@
 
 #import "UIView+XMLDescription.h"
 
+
 @implementation UIView (XMLDescription)
+
+
+- (NSMutableString *) xmlAttributes {
+	NSMutableString *attributes = [NSMutableString stringWithFormat:@"\n\t<address>%d</address>", (NSInteger)self];
+	[attributes appendFormat:@"\n\t<tag>%d</tag>", [self tag]];
+	return attributes;
+}
 
 - (NSString *) xmlDescription {
 	NSMutableString *resultingXML = [NSMutableString stringWithFormat:@"\n<%@>", [self className]];
-	[resultingXML appendFormat:@"\n\t<address>%d</address>", (NSInteger)self];
-	[resultingXML appendFormat:@"\n\t<tag>%d</tag>", [self tag]];
+	[resultingXML appendString:[self xmlAttributes]];
+	
+	//TODO: delegate those to subclasses
 	if ([self respondsToSelector:@selector(text)])
 	{
 		[resultingXML appendFormat:@"\n\t<text><![CDATA[%@]]></text>", [self performSelector:@selector(text)]];
@@ -65,5 +74,15 @@
 	return resultingXML;
 }
 
+
+@end
+
+@implementation UITableViewCell (XMLDescription)
+
+- (NSMutableString *) xmlAttributes {
+	NSMutableString *attributes = [super xmlAttributes];
+	[attributes appendFormat:@"\n\t<accessoryType>%d</accessoryType>", [self accessoryType]];
+	return attributes;
+}
 
 @end
