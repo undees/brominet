@@ -19,7 +19,7 @@
 	if(self.windows.count > 0) {
 		[resultingXML appendString:@"\n\t<windows>"];
 		for (UIWindow *window in self.windows) {
-			[resultingXML appendString:[window xmlDescription]];
+			[resultingXML appendString:[window xmlDescriptionWithStringPadding:@"\t"]];
 		}
 		[resultingXML appendString:@"\n\t</windows>"];
 	}
