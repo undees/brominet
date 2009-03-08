@@ -44,6 +44,7 @@ const float WAIT_ATTEMPT_DELAY = 0.25;
 		
 		[self retain];
 		[self performSelector:@selector(runCommand) withObject:nil afterDelay:1.0];
+		
 	}
 	return self;
 }
@@ -85,6 +86,29 @@ const float WAIT_ATTEMPT_DELAY = 0.25;
 }
 
 //
+// highlighView
+//
+// shows a yellow rect over the provided view
+//
+- (void)highlightView:(UIView *)view {
+	UIView *highlightView = [[UIView alloc] init];
+	CGRect frame = view.frame;
+	frame.origin.x = 0;
+	frame.origin.y = 0;
+	highlightView.frame = frame;
+	highlightView.backgroundColor = [UIColor yellowColor];
+	highlightView.alpha = 0.5;
+	[view addSubview:highlightView];
+	
+	[UIView beginAnimations:@"highlight" context:nil]; 
+	[UIView setAnimationDuration:1.5f];
+	[UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
+	highlightView.alpha = 0;
+	[UIView commitAnimations];
+	[highlightView release];
+}
+
+//
 // viewsForXPath:
 //
 // Generates an XML document from the current view tree and runs the specified
@@ -116,6 +140,8 @@ const float WAIT_ATTEMPT_DELAY = 0.25;
 				NSAssert([view isKindOfClass:[UIView class]],
 						 @"XPath selected memory address did not contain a UIView");
 				[views addObject:view];
+				
+				[self highlightView:view];
 				break;
 			}
 		}
