@@ -16,6 +16,7 @@
 const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 const float MAX_WAIT_ATTEMPTS = 60;
 const float WAIT_ATTEMPT_DELAY = 0.25;
+const float BACKBUTTON_WAIT_DELAY = 0.75;
 
 @implementation ScriptRunner
 
@@ -69,18 +70,16 @@ const float WAIT_ATTEMPT_DELAY = 0.25;
 - (void)performTouchInView:(UIView *)view
 {
 	UITouch *touch = [[UITouch alloc] initInView:view];
-	UIEvent *eventDown = [[UIEvent alloc] initWithTouch:touch];
+	UIEvent *event = [[UIEvent alloc] initWithTouch:touch];
 	NSSet *touches = [[NSMutableSet alloc] initWithObjects:&touch count:1];
 	
-	[touch.view touchesBegan:touches withEvent:eventDown];
+	[touch.view touchesBegan:touches withEvent:event];
 	
-	UIEvent *eventUp = [[UIEvent alloc] initWithTouch:touch];
 	[touch setPhase:UITouchPhaseEnded];
 	
-	[touch.view touchesEnded:touches withEvent:eventDown];
+	[touch.view touchesEnded:touches withEvent:event];
 	
-	[eventDown release];
-	[eventUp release];
+	[event release];
 	[touches release];
 	[touch release];
 }
@@ -349,31 +348,46 @@ const float WAIT_ATTEMPT_DELAY = 0.25;
 	
 }
 
-//TODO: make this work
-// touchBackItem **NOT WORKING YET**
+//
+// touchBackButton
 //
 // Performs a synthesized touch down and touch up in the current back item
 //
-- (void) touchBackItem: (NSDictionary *) command  {
-	NSString *viewXPath = @"//UINavigationBar";
+- (void)touchBackButton:(NSDictionary *)command  {
 	
-	printf("=== touchBackItem\n\n");
-	
-	NSArray *views = [self viewsForXPath:viewXPath];
-	if([views count] == 0)
-	{
-		fprintf(
-				stderr,
-				"### command 'touchBackItem' couldn't find any back items\n");
-		exit(1);
+	// the touch won't work if the previous animation is not completed yet, so we wait a little just to make sure we are able to touch back button
+	NSObject *waitedForEnoughTime = [command objectForKey:@"waitedForEnoughTime"];
+	if(waitedForEnoughTime) {
+		NSString *viewXPath = @"//UINavigationItemButtonView";
+		
+		printf("=== touchBackButton\n\n");
+		
+		NSArray *views = [self viewsForXPath:viewXPath];
+		if([views count] == 0)
+		{
+			fprintf(
+					stderr,
+					"### command 'touchBackButton' couldn't find any back buttons\n");
+			exit(1);
+		}
+		if([views count] > 1)
+		{
+			fprintf(
+					stderr,
+					"### command 'touchBackButton' found more then one back buttons\n");
+			exit(1);
+		}
+		
+		UIView *view = [views objectAtIndex:0];
+		[self performTouchInView:view];
 	}
-	
-	UINavigationBar *navBar = (UINavigationBar *)[views objectAtIndex:0];
-	
-	[navBar.backItem.backBarButtonItem.target performSelector:navBar.backItem.backBarButtonItem.action];
-	
+	else {
+		NSMutableDictionary *newCommand = [NSMutableDictionary dictionaryWithDictionary:command];
+		[newCommand setValue:@"YES" forKey:@"waitedForEnoughTime"];
+		[scriptCommands insertObject:newCommand atIndex:1];
+		scriptRunnerInterCommandDelay = BACKBUTTON_WAIT_DELAY;
+	}
 }
-
 
 //
 // scrollToRow
