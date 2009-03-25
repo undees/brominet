@@ -13,10 +13,9 @@
 @implementation UITouch (Synthesize)
 
 //
-// initInView:phase:
+// initInView
 //
 // Creats a UITouch, centered on the specified view, in the view's window.
-// Sets the phase as specified.
 //
 - (id)initInView:(UIView *)view
 {
@@ -65,7 +64,7 @@
 }
 
 //
-// setPhase:
+// setLocationInWindow:
 //
 // Setter to allow access to the _locationInWindow member.
 //
@@ -74,6 +73,17 @@
 	_previousLocationInWindow = _locationInWindow;
 	_locationInWindow = location;
 	_timestamp = [NSDate timeIntervalSinceReferenceDate];
+}
+
+//
+// moveLocationInWindow:
+//
+// Adjusts location slightly.
+//
+- (void)moveLocationInWindow
+{
+	CGPoint moveTo = CGPointMake(_locationInWindow.x + 20, _locationInWindow.y);
+	[self setLocationInWindow:moveTo];
 }
 
 @end
@@ -148,6 +158,13 @@
 		publicEvent->_keyedTouches = dict;
 	}
 	return self;
+}
+
+- (void)moveLocation
+{
+	PublicEvent *publicEvent = (PublicEvent *)self;
+	publicEvent->_timestamp = [NSDate timeIntervalSinceReferenceDate];
+	publicEvent->_event->x += 20;
 }
 
 @end

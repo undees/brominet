@@ -81,11 +81,38 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	UITouch *touch = [[UITouch alloc] initInView:view];
 	UIEvent *event = [[UIEvent alloc] initWithTouch:touch];
 	NSSet *touches = [[NSMutableSet alloc] initWithObjects:&touch count:1];
+
+	[touch.view touchesBegan:touches withEvent:event];
+
+	[touch setPhase:UITouchPhaseEnded];
+
+	[touch.view touchesEnded:touches withEvent:event];
+	
+	[event release];
+	[touches release];
+	[touch release];
+}
+
+//
+// performBumpInView:
+//
+// Synthesize a short rightward drag in the center of the specified view. Since there
+// is no API to do this, it's a dirty hack of a job.
+//
+- (void)performDragInView:(UIView *)view
+{
+	UITouch *touch = [[UITouch alloc] initInView:view];
+	UIEvent *event = [[UIEvent alloc] initWithTouch:touch];
+	NSSet *touches = [[NSMutableSet alloc] initWithObjects:&touch count:1];
 	
 	[touch.view touchesBegan:touches withEvent:event];
 	
-	[touch setPhase:UITouchPhaseEnded];
+	[touch setPhase:UITouchPhaseMoved];
+	[touch moveLocationInWindow];
+	[event moveLocation];
+	[touch.view touchesMoved:touches withEvent:event];
 	
+	[touch setPhase:UITouchPhaseEnded];
 	[touch.view touchesEnded:touches withEvent:event];
 	
 	[event release];
@@ -354,6 +381,42 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	UIView *view = [views objectAtIndex:0];
 	
 	[self performTouchInView:view];
+	
+}
+
+//
+// simulateDrag
+//
+// Performs a synthesized rightward drag in a single view selected
+// by a given XPath query.
+//
+// Required parameters:
+//	viewXPath (search for a view matching this XPath)
+//
+- (void) simulateDrag: (NSDictionary *) command  {
+	NSString *viewXPath = [command objectForKey:@"viewXPath"];
+	if (viewXPath == nil)
+	{
+		fprintf(stderr, "### Command 'simulateDrag' requires 'viewXPath' parameter.\n");
+		exit(1);
+	}
+	
+	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
+		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
+	
+	NSArray *views = [self viewsForXPath:viewXPath];
+	if([views count] != 1)
+	{
+		fprintf(
+				stderr,
+				"### 'viewXPath' for command 'simulateDrag' selected %ld nodes, where exactly 1 is required.\n",
+				[views count]);
+		exit(1);
+	}
+	
+	UIView *view = [views objectAtIndex:0];
+	
+	[self performDragInView:view];
 	
 }
 

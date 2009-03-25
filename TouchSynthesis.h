@@ -18,6 +18,7 @@
 - (id)initInView:(UIView *)view;
 - (void)setPhase:(UITouchPhase)phase;
 - (void)setLocationInWindow:(CGPoint)location;
+- (void)moveLocationInWindow;
 
 @end
 
@@ -29,5 +30,6 @@
 @interface UIEvent (Synthesize)
 
 - (id)initWithTouch:(UITouch *)touch;
+- (void)moveLocation;
 
 @end
