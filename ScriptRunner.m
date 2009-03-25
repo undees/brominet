@@ -32,20 +32,29 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	self = [super init];
 	if (self != nil)
 	{
+		[self retain];
+
 		NSData *fileData =
 		[NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"TestScript" ofType:@"plist"]];
-		scriptCommands =
-		[[NSPropertyListSerialization
-		  propertyListFromData:fileData
-		  mutabilityOption:NSPropertyListMutableContainers
-		  format:nil
-		  errorDescription:nil]
-		 retain];
-		NSAssert([scriptCommands count] > 0, @"TestScript was not an array as expected.");
 		
-		[self retain];
-		[self performSelector:@selector(runCommand) withObject:nil afterDelay:1.0];
-		
+		if (fileData != nil)
+		{
+			scriptCommands =
+			[[NSPropertyListSerialization
+			  propertyListFromData:fileData
+			  mutabilityOption:NSPropertyListMutableContainers
+			  format:nil
+			  errorDescription:nil]
+			 retain];
+
+			NSAssert([scriptCommands count] > 0, @"TestScript was not an array as expected.");
+
+			[self performSelector:@selector(runCommand) withObject:nil afterDelay:1.0];
+		}
+		else
+		{
+			scriptCommands = [[NSMutableArray new] retain];
+		}
 	}
 	return self;
 }
@@ -594,10 +603,6 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // Runs the first command in the scriptCommands array and then removes it from
 // the array.
 //
-// Two commands are supported:
-//	- outputView (writes the XML for a view hierarchy to a file)
-//	- simulateTouch (selects a UIView by XPath and simulates a touch within it)
-//
 - (void)runCommand
 {
 	NSDictionary *command = [scriptCommands objectAtIndex:0];
@@ -621,18 +626,10 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	[scriptCommands removeObjectAtIndex:0];
 	
 	//
-	// Exit the program when complete
+	// If further commands remain, queue the next one
 	//
-	if ([scriptCommands count] == 0)
+	if ([scriptCommands count] > 0)
 	{
-		[self release];
-		exit(0);
-	}
-	else
-	{
-		//
-		// If further commands remain, queue the next one
-		//
 		[self
 		 performSelector:@selector(runCommand)
 		 withObject:nil
@@ -640,7 +637,25 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	}
 }
 
+//
+// runCommandStep
+//
+// Runs the specified command.
+//
+- (void)runCommandStep:(NSData*)command
+{
+	NSDictionary* parsed =
+	[NSPropertyListSerialization
+	 propertyListFromData:command
+	 mutabilityOption:NSPropertyListMutableContainers
+	 format:nil
+	 errorDescription:nil];
+
+	[scriptCommands addObject:parsed];
+
+	[self runCommand];
+}
+
 @end
 
 #endif
-

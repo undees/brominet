@@ -14,4 +14,6 @@
 	float scriptRunnerInterCommandDelay;
 }
 
+- (void)runCommandStep:(NSData*)command;
+
 @end
