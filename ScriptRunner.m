@@ -33,6 +33,8 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if (self != nil)
 	{
 		[self retain];
+		
+		response = [NSString string];
 
 		NSData *fileData =
 		[NSData dataWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"TestScript" ofType:@"plist"]];
@@ -68,6 +70,17 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 {
 	[scriptCommands release];
 	[super dealloc];
+}
+
+
+//
+// setResponse:(NSString*)input
+//
+//
+- (void)setResponse:(NSString*)input
+{
+    [response autorelease];
+    response = [input retain];
 }
 
 //
@@ -121,7 +134,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 }
 
 //
-// highlighView
+// highlightView
 //
 // shows a yellow rect over the provided view
 //
@@ -216,7 +229,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		resultString = [[UIApplication sharedApplication] xmlDescription];
 	}
 	if (path == nil) {
-		printf("%s", [resultString UTF8String]);
+		[self setResponse:resultString];
 	}
 	else {
 		[resultString writeToFile:path atomically:YES encoding: NSUTF8StringEncoding error: nil];
@@ -234,7 +247,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // Required parameters:
 //	viewXPath (search for views matching this XPath)
 //
-// Optional paramter:
+// Optional parameter:
 //	count (wait for a specified number of elements matching viewXPath)
 //
 - (void) waitForElement: (NSDictionary *) command  {
@@ -264,7 +277,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 			   );
 		
 	}
-		
+
 	printf("attempt %d\n", [numberOfAttempts intValue]);
 
 	NSArray *views = [self viewsForXPath:viewXPath];
@@ -277,8 +290,10 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		foundElements = [views count] != 0;
 	}
 	
-	if(!foundElements) {
-		
+	if(foundElements) {
+		[self setResponse:@"pass"];
+	}
+	else {
 		if ([numberOfAttempts integerValue] == MAX_WAIT_ATTEMPTS) {
 			if(requiredCount) {
 				fprintf(
@@ -295,13 +310,12 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 						"### TIMEOUT: couldn't find elements with xpath '%s'\n",
 						[viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
 			}
-			exit(1);
+			[self setResponse:@"fail"];
 		}
 		else {
 			NSMutableDictionary *newCommand = [NSMutableDictionary dictionaryWithDictionary:command];
 			[newCommand setValue:[NSNumber numberWithInt:([numberOfAttempts intValue] + 1)] forKey:@"numberOfCalls"];
-			[scriptCommands insertObject:newCommand atIndex:1];
-			scriptRunnerInterCommandDelay = WAIT_ATTEMPT_DELAY;
+			[self performSelector:@selector(waitForElement:) withObject:(newCommand) afterDelay:(WAIT_ATTEMPT_DELAY)];
 		}
 	}
 }
@@ -312,40 +326,50 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // This command verifies that the specified number of nodes matching
 // the given XPath query are found.
 //
-// Required parameters:
+// Required parameter:
 //	viewXPath (search for views matching this XPath)
-//	matchCount (number of nodes found must equal this number)
+//
+// Optional parameter:
+//	matchCount (number of nodes found must equal this number; -1 means 1 or more)
 //
 - (void) checkMatchCount: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'checkMatchCount' requires 'viewXPath' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	NSNumber *matchCount = [command objectForKey:@"matchCount"];
-	if (matchCount == nil)
+
+	int expected = -1;
+	if (matchCount != nil)
 	{
-		fprintf(stderr, "### Command 'checkMatchCount' requires 'matchCount' parameter.\n");
-		exit(1);
+		expected = [matchCount integerValue];
 	}
 	
 	printf("=== checkMatchCount\n    viewXPath:\n        %s\n    matchCount: %ld\n",
 		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding],
-		   [matchCount integerValue]);
+		   expected);
 	
 	NSArray *views = [self viewsForXPath:viewXPath];
-	if ([views count] != [matchCount integerValue])
+	int actual = [views count];
+
+	if (actual == expected ||
+		(actual > 0 && expected == -1))
+	{
+		[self setResponse:@"pass"];
+	}
+	else
 	{
 		fprintf(
 				stderr,
 				"### 'checkMatchCount' wanted a matching count of %ld but encountered %ld\n",
 				[matchCount integerValue],
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
 	}
-	
 }
 
 //
@@ -362,7 +386,8 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'simulateTouch' requires 'viewXPath' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
@@ -375,13 +400,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'simulateTouch' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	UIView *view = [views objectAtIndex:0];
 	
 	[self performTouchInView:view];
-	
+	[self setResponse:@"pass"];
 }
 
 //
@@ -398,7 +424,8 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'simulateDrag' requires 'viewXPath' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
@@ -411,13 +438,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'simulateDrag' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	UIView *view = [views objectAtIndex:0];
 	
 	[self performDragInView:view];
-	
+	[self setResponse:@"pass"];
 }
 
 //
@@ -426,7 +454,6 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // Performs a synthesized touch down and touch up in the current back item
 //
 - (void)touchBackButton:(NSDictionary *)command  {
-	
 	// the touch won't work if the previous animation is not completed yet, so we wait a little just to make sure we are able to touch back button
 	NSObject *waitedForEnoughTime = [command objectForKey:@"waitedForEnoughTime"];
 	if(waitedForEnoughTime) {
@@ -435,29 +462,28 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		printf("=== touchBackButton\n\n");
 		
 		NSArray *views = [self viewsForXPath:viewXPath];
-		if([views count] == 0)
-		{
+		if([views count] == 0) {
 			fprintf(
 					stderr,
 					"### command 'touchBackButton' couldn't find any back buttons\n");
-			exit(1);
+			[self setResponse:@"fail"];
 		}
-		if([views count] > 1)
-		{
+		else if([views count] > 1) {
 			fprintf(
 					stderr,
 					"### command 'touchBackButton' found more then one back buttons\n");
-			exit(1);
+			[self setResponse:@"fail"];
 		}
-		
-		UIView *view = [views objectAtIndex:0];
-		[self performTouchInView:view];
+		else {
+			UIView *view = [views objectAtIndex:0];
+			[self performTouchInView:view];
+			[self setResponse:@"pass"];
+		}
 	}
 	else {
 		NSMutableDictionary *newCommand = [NSMutableDictionary dictionaryWithDictionary:command];
 		[newCommand setValue:@"YES" forKey:@"waitedForEnoughTime"];
-		[scriptCommands insertObject:newCommand atIndex:1];
-		scriptRunnerInterCommandDelay = BACKBUTTON_WAIT_DELAY;
+		[self performSelector:@selector(touchBackButton:) withObject:(newCommand) afterDelay:(BACKBUTTON_WAIT_DELAY)];
 	}
 }
 
@@ -494,29 +520,29 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		   [indexPath row]);
 	
 	NSArray *views = [self viewsForXPath:viewXPath];
-	if([views count] != 1)
-	{
+	if([views count] != 1) {
 		fprintf(
 				stderr,
 				"### 'viewXPath' for command 'scrollToRow' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
 	}
-	if(![[views objectAtIndex:0] isKindOfClass:[UITableView class]])
-	{
+	else if(![[views objectAtIndex:0] isKindOfClass:[UITableView class]]) {
 		fprintf(
 				stderr,
 				"### 'viewXPath' for command 'scrollToRow' selected a node but it wasn't a UITableView as required.\n",
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
 	}
-	
-	UITableView *view = [views objectAtIndex:0];
-	[view
-	 scrollToRowAtIndexPath:indexPath
-	 atScrollPosition:UITableViewScrollPositionNone
-	 animated:NO];
-	
+	else {
+		UITableView *view = [views objectAtIndex:0];
+		[view
+		 scrollToRowAtIndexPath:indexPath
+		 atScrollPosition:UITableViewScrollPositionNone
+		 animated:NO];
+
+		[self setResponse:@"pass"];
+	}
 }
 
 //
@@ -534,14 +560,16 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'assertText' requires 'viewXPath' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	NSString *text = [command objectForKey:@"text"];
 	if (text == nil)
 	{
 		fprintf(stderr, "### Command 'assertText' requires 'text' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	printf("=== assertText\n    viewXPath:\n        %s\n    text: %s\n",
@@ -555,21 +583,24 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'assertText' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	UIView *viewForText = (UIView *)[views objectAtIndex:0];
 	if([viewForText respondsToSelector:@selector(text)]) {
 		NSString *actualText = (NSString *)[viewForText performSelector:@selector(text)];
-		if(![text isEqualToString:actualText]) {
+		if([text isEqualToString:actualText]) {
+			[self setResponse:@"pass"];
+		}
+		else {
 			fprintf(
 					stderr,
 					"### '%s' found, but '%s' was expected.\n",
 					[actualText cStringUsingEncoding:NSUTF8StringEncoding],
 					[text cStringUsingEncoding:NSUTF8StringEncoding],
 					[views count]);
-			exit(1);
-			
+			[self setResponse:@"fail"];
 		}
 	}
 	else {
@@ -578,7 +609,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				"### %s doesn't suport 'text' method.\n",
 				[viewForText.className cStringUsingEncoding:NSUTF8StringEncoding],
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
 	}
 }
 
@@ -598,14 +629,16 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'setText' requires 'viewXPath' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	NSString *text = [command objectForKey:@"text"];
 	if (text == nil)
 	{
 		fprintf(stderr, "### Command 'setText' requires 'text' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	printf("=== setText\n    viewXPath:\n        %s\n    text: %s\n",
@@ -619,12 +652,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'setText' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	UIView *viewForText = (UIView *)[views objectAtIndex:0];
 	if([viewForText respondsToSelector:@selector(setText:)]) {
 		[viewForText performSelector:@selector(setText:) withObject:text];
+		[self setResponse:@"pass"];
 	}
 	else {
 		fprintf(
@@ -632,7 +667,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				"### %s doesn't suport 'setText' method.\n",
 				[viewForText.className cStringUsingEncoding:NSUTF8StringEncoding],
 				[views count]);
-		exit(1);
+		[self setResponse:@"fail"];
 	}
 }
 
@@ -640,7 +675,11 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // pause
 //
 // This command keeps does nothing except setting the minimum interval
-// to the next command according to the 'seconds' parameter
+// to the next command according to the 'seconds' parameter.
+//
+// It has not been adapted to be called as a standalone step,
+// so it is wired to return a failure message (the regular
+// runCommand script will ignore it).
 //
 // Required parameters:
 //	seconds (interval between pause and the next command)
@@ -649,13 +688,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	NSNumber *seconds = [command objectForKey:@"seconds"];
 	if (seconds == nil) {
 		fprintf(stderr, "### Command 'pause' requires 'seconds' parameter.\n");
-		exit(1);
-		
 	}
-	printf("=== pause\n    seconds:\n        %f\n",
-		   [seconds floatValue]);
+	else {
+		printf("=== pause\n    seconds:\n        %f\n",
+			   [seconds floatValue]);
+		scriptRunnerInterCommandDelay = [seconds floatValue];
+	}
 	
-	scriptRunnerInterCommandDelay = [seconds floatValue];
+	[self setResponse:@"fail"];
 }
 
 #pragma mark -
@@ -671,7 +711,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	NSDictionary *command = [scriptCommands objectAtIndex:0];
 	NSString *commandName = [[command objectForKey:@"command"] stringByAppendingString:@":"];
 	
-	//reset default inteval
+	//reset default interval
 	scriptRunnerInterCommandDelay = SCRIPT_RUNNER_INTER_COMMAND_DELAY;
 	
 	if([self respondsToSelector:NSSelectorFromString(commandName)])
@@ -681,7 +721,6 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### command '%s' doesn't exist. See ScriptRunner.m\n",
 				[commandName UTF8String]);
-		exit(1);
 	}
 	//
 	// Remove each command after execution
@@ -714,9 +753,22 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	 format:nil
 	 errorDescription:nil];
 
-	[scriptCommands addObject:parsed];
+	NSString *commandName = [[parsed objectForKey:@"command"] stringByAppendingString:@":"];
 
-	[self runCommand];
+	[self setResponse:[NSString string]];
+	
+	if([self respondsToSelector:NSSelectorFromString(commandName)])
+		[self performSelector:NSSelectorFromString(commandName) withObject:parsed];
+}
+
+//
+// response
+//
+// Returns the response sent to the most recent command.
+//
+- (NSString*)response
+{
+	return response;
 }
 
 @end

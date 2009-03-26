@@ -12,8 +12,10 @@
 {
 	NSMutableArray *scriptCommands;
 	float scriptRunnerInterCommandDelay;
+	NSString *response;
 }
 
 - (void)runCommandStep:(NSData*)command;
+- (NSString*)response;
 
 @end
