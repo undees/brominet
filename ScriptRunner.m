@@ -255,7 +255,8 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'checkMatchCount' requires 'viewXPath' parameter.\n");
-		exit(1);
+		[self setResponse:@"fail"];
+		return;
 	}
 	
 	NSNumber *requiredCount = [command objectForKey:@"count"];
