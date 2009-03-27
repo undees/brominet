@@ -673,6 +673,52 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 }
 
 //
+// getText
+//
+// This command gets the text of an UITextField or any component with text attribute
+// found with the given XPath query.
+//
+// Required parameter:
+//	viewXPath (search for views matching this XPath)
+//
+- (void) getText: (NSDictionary *) command  {
+	NSString *viewXPath = [command objectForKey:@"viewXPath"];
+	if (viewXPath == nil)
+	{
+		fprintf(stderr, "### Command 'getText' requires 'viewXPath' parameter.\n");
+		[self setResponse:@""];
+		return;
+	}
+
+	printf("=== getText\n    viewXPath:\n        %s\n",
+		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
+	
+	NSArray *views = [self viewsForXPath:viewXPath];
+	if([views count] != 1)
+	{
+		fprintf(
+				stderr,
+				"### 'viewXPath' for command 'getText' selected %ld nodes, where exactly 1 is required.\n",
+				[views count]);
+		[self setResponse:@""];
+		return;
+	}
+	
+	UIView *viewForText = (UIView *)[views objectAtIndex:0];
+	if([viewForText respondsToSelector:@selector(text)]) {
+		[self setResponse:[viewForText performSelector:@selector(text)]];
+	}
+	else {
+		fprintf(
+				stderr,
+				"### %s doesn't suport 'text' method.\n",
+				[viewForText.className cStringUsingEncoding:NSUTF8StringEncoding],
+				[views count]);
+		[self setResponse:@""];
+	}
+}
+
+//
 // pause
 //
 // This command keeps does nothing except setting the minimum interval
