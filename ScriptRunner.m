@@ -804,8 +804,19 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 
 	[self setResponse:[NSString string]];
 	
-	if([self respondsToSelector:NSSelectorFromString(commandName)])
-		[self performSelector:NSSelectorFromString(commandName) withObject:parsed];
+	id appDelegate = [[UIApplication sharedApplication] delegate];
+
+	id performer =
+		([self respondsToSelector:NSSelectorFromString(commandName)] ?
+		 self :
+	     ([appDelegate respondsToSelector:NSSelectorFromString(commandName)] ?
+		  appDelegate :
+		  nil));
+	
+	if (performer)
+	{
+		[performer performSelector:NSSelectorFromString(commandName) withObject:parsed];
+	}
 }
 
 //
