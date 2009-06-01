@@ -10,11 +10,8 @@
 
 @interface ScriptRunner : NSObject
 {
-	NSString *response;
 }
 
-- (void)runCommandStep:(NSData*)command;
-
-@property (nonatomic, retain) NSString* response;
+- (NSString*)runCommandStep:(NSData*)command;
 
 @end

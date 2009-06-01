@@ -18,35 +18,6 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 
 @implementation ScriptRunner
 
-@synthesize response;
-
-//
-// init
-//
-// Init method for the object.
-//
-- (id)init
-{
-	if (self = [super init])
-	{
-		self.response = @"";
-	}
-	return self;
-}
-
-//
-// dealloc
-//
-// Releases instance memory.
-//
-- (void)dealloc
-{
-	[response release];
-
-	[super dealloc];
-}
-
-
 //
 // performTouchInView:
 //
@@ -172,10 +143,10 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 //
 // Required parameter:
 //
-- (void) outputView: (NSDictionary *) command  {
+- (NSString*) outputView: (NSDictionary *) command  {
 	printf("=== outputView\n");
 	
-	self.response = [[UIApplication sharedApplication] xmlDescription];
+	return [[UIApplication sharedApplication] xmlDescription];
 }
 
 //
@@ -187,13 +158,12 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // Required parameters:
 //	viewXPath (search for a view matching this XPath)
 //
-- (void) simulateTouch: (NSDictionary *) command  {
+- (NSString*) simulateTouch: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'simulateTouch' requires 'viewXPath' parameter.\n");
-		self.response = @"fail";
-		return;
+		return @"fail";
 	}
 	
 	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
@@ -206,32 +176,30 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'simulateTouch' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		self.response = @"fail";
-		return;
+		return @"fail";
 	}
 	
 	UIView *view = [views objectAtIndex:0];
 	
 	[self performTouchInView:view];
-	self.response = @"pass";
+	return @"pass";
 }
 
 //
-// simulateDrag
+// simulateSwipe
 //
-// Performs a synthesized rightward drag in a single view selected
+// Performs a synthesized rightward swipe in a single view selected
 // by a given XPath query.
 //
 // Required parameters:
 //	viewXPath (search for a view matching this XPath)
 //
-- (void) simulateDrag: (NSDictionary *) command  {
+- (NSString*) simulateSwipe: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	if (viewXPath == nil)
 	{
-		fprintf(stderr, "### Command 'simulateDrag' requires 'viewXPath' parameter.\n");
-		self.response = @"fail";
-		return;
+		fprintf(stderr, "### Command 'simulateSwipe' requires 'viewXPath' parameter.\n");
+		return @"fail";
 	}
 	
 	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
@@ -244,53 +212,13 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'simulateDrag' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		self.response = @"fail";
-		return;
+		return @"fail";
 	}
 	
 	UIView *view = [views objectAtIndex:0];
 	
 	[self performSwipeInView:view];
-	self.response = @"pass";
-}
-
-//
-// touchBackButton
-//
-// Performs a synthesized touch down and touch up in the current back item
-//
-- (void)touchBackButton:(NSDictionary *)command  {
-	// the touch won't work if the previous animation is not completed yet, so we wait a little just to make sure we are able to touch back button
-	NSObject *waitedForEnoughTime = [command objectForKey:@"waitedForEnoughTime"];
-	if(waitedForEnoughTime) {
-		NSString *viewXPath = @"//UINavigationItemButtonView";
-		
-		printf("=== touchBackButton\n\n");
-		
-		NSArray *views = [self viewsForXPath:viewXPath];
-		if([views count] == 0) {
-			fprintf(
-					stderr,
-					"### command 'touchBackButton' couldn't find any back buttons\n");
-			self.response = @"fail";
-		}
-		else if([views count] > 1) {
-			fprintf(
-					stderr,
-					"### command 'touchBackButton' found more then one back buttons\n");
-			self.response = @"fail";
-		}
-		else {
-			UIView *view = [views objectAtIndex:0];
-			[self performTouchInView:view];
-			self.response = @"pass";
-		}
-	}
-	else {
-		NSMutableDictionary *newCommand = [NSMutableDictionary dictionaryWithDictionary:command];
-		[newCommand setValue:@"YES" forKey:@"waitedForEnoughTime"];
-		[self performSelector:@selector(touchBackButton:) withObject:(newCommand) afterDelay:(BACKBUTTON_WAIT_DELAY)];
-	}
+	return @"pass";
 }
 
 //
@@ -307,7 +235,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 //	sectionIndex (scroll the table view to the rowIndex in this section)
 //
 
-- (void) scrollToRow: (NSDictionary *) command  {
+- (NSString*) scrollToRow: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	NSAssert(viewXPath != nil, @"Command 'scrollToRow' requires 'viewXPath' parameter");
 	NSNumber *rowIndex = [command objectForKey:@"rowIndex"];
@@ -331,14 +259,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'scrollToRow' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		self.response = @"fail";
+		return @"fail";
 	}
 	else if(![[views objectAtIndex:0] isKindOfClass:[UITableView class]]) {
 		fprintf(
 				stderr,
 				"### 'viewXPath' for command 'scrollToRow' selected a node but it wasn't a UITableView as required.\n",
 				[views count]);
-		self.response = @"fail";
+		return @"fail";
 	}
 	else {
 		UITableView *view = [views objectAtIndex:0];
@@ -347,7 +275,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		 atScrollPosition:UITableViewScrollPositionNone
 		 animated:NO];
 
-		self.response = @"pass";
+		return @"pass";
 	}
 }
 
@@ -361,21 +289,19 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 //	viewXPath (search for views matching this XPath)
 //	text (the text to be set)
 //
-- (void) setText: (NSDictionary *) command  {
+- (NSString*) setText: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	if (viewXPath == nil)
 	{
 		fprintf(stderr, "### Command 'setText' requires 'viewXPath' parameter.\n");
-		self.response = @"fail";
-		return;
+		return @"fail";
 	}
 	
 	NSString *text = [command objectForKey:@"text"];
 	if (text == nil)
 	{
 		fprintf(stderr, "### Command 'setText' requires 'text' parameter.\n");
-		self.response = @"fail";
-		return;
+		return @"fail";
 	}
 	
 	printf("=== setText\n    viewXPath:\n        %s\n    text: %s\n",
@@ -389,14 +315,13 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				stderr,
 				"### 'viewXPath' for command 'setText' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
-		self.response = @"fail";
-		return;
+		return @"fail";
 	}
 	
 	UIView *viewForText = (UIView *)[views objectAtIndex:0];
 	if([viewForText respondsToSelector:@selector(setText:)]) {
 		[viewForText performSelector:@selector(setText:) withObject:text];
-		self.response = @"pass";
+		return @"pass";
 	}
 	else {
 		fprintf(
@@ -404,7 +329,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 				"### %s doesn't suport 'setText' method.\n",
 				[viewForText.className cStringUsingEncoding:NSUTF8StringEncoding],
 				[views count]);
-		self.response = @"fail";
+		return @"fail";
 	}
 }
 
@@ -415,7 +340,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 //
 // Runs the specified command.
 //
-- (void)runCommandStep:(NSData*)command
+- (NSString*)runCommandStep:(NSData*)command
 {
 	NSDictionary* parsed =
 	[NSPropertyListSerialization
@@ -427,21 +352,18 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	NSString *commandName = [[parsed objectForKey:@"command"] stringByAppendingString:@":"];
 	NSLog(commandName);
 
-	self.response = @"";
-	
 	id appDelegate = [[UIApplication sharedApplication] delegate];
-
-	id performer =
-		([self respondsToSelector:NSSelectorFromString(commandName)] ?
-		 self :
-	     ([appDelegate respondsToSelector:NSSelectorFromString(commandName)] ?
-		  appDelegate :
-		  nil));
+	SEL selector = NSSelectorFromString(commandName);
+	id performer = ([self respondsToSelector:selector] ?
+					self :
+					([appDelegate respondsToSelector:selector] ?
+					 appDelegate :
+					 nil));
 	
-	if (performer)
-	{
-		[performer performSelector:NSSelectorFromString(commandName) withObject:parsed];
-	}
+	if (!performer)
+		return @"";
+
+	return [performer performSelector:selector withObject:parsed];
 }
 
 @end
