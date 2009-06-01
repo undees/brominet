@@ -6,8 +6,6 @@
 //  Copyright 2008 Matt Gallagher. All rights reserved.
 //
 
-#ifdef BROMINE_ENABLED
-
 #import "TouchSynthesis.h"
 
 @implementation UITouch (Synthesize)
@@ -168,6 +166,4 @@
 }
 
 @end
-
-#endif // BROMINE_ENABLED
 

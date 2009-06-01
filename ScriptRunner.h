@@ -10,12 +10,11 @@
 
 @interface ScriptRunner : NSObject
 {
-	NSMutableArray *scriptCommands;
-	float scriptRunnerInterCommandDelay;
 	NSString *response;
 }
 
 - (void)runCommandStep:(NSData*)command;
-- (NSString*)response;
+
+@property (nonatomic, retain) NSString* response;
 
 @end
