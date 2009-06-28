@@ -17,6 +17,19 @@
 //
 - (id)initInView:(UIView *)view
 {
+	return [self initInView:view hitTest:YES];
+}
+
+
+//
+// initInView:hitTest
+//
+// Creats a UITouch, centered on the specified view, in the view's window.
+// Determines the target view by either performing a hit test, or just
+// forcing the tap to land on the passed-in view.
+//
+- (id)initInView:(UIView *)view hitTest:(BOOL)hitTest
+{
 	self = [super init];
 	if (self != nil)
 	{
@@ -38,7 +51,9 @@
 				frameInWindow.origin.y + 0.5 * frameInWindow.size.height);
 		_previousLocationInWindow = _locationInWindow;
 
-		UIView *target = [view.window hitTest:_locationInWindow withEvent:nil];
+		UIView *target = hitTest ?
+			[view.window hitTest:_locationInWindow withEvent:nil] :
+			view;
 
 		_window = [view.window retain];
 		_view = [target retain];

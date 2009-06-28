@@ -16,6 +16,7 @@
 @interface UITouch (Synthesize)
 
 - (id)initInView:(UIView *)view;
+- (id)initInView:(UIView *)view hitTest:(BOOL)hitTest;
 - (void)setPhase:(UITouchPhase)phase;
 - (void)setLocationInWindow:(CGPoint)location;
 - (void)moveLocationInWindow;

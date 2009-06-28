@@ -24,9 +24,9 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // Synthesize a touch begin/end in the center of the specified view. Since there
 // is no API to do this, it's a dirty hack of a job.
 //
-- (void)performTouchInView:(UIView *)view
+- (void)performTouchInView:(UIView *)view hitTest:(BOOL)hitTest
 {
-	UITouch *touch = [[UITouch alloc] initInView:view];
+	UITouch *touch = [[UITouch alloc] initInView:view hitTest:hitTest];
 	UIEvent *event = [[UIEvent alloc] initWithTouch:touch];
 	NSSet *touches = [[NSMutableSet alloc] initWithObjects:&touch count:1];
 
@@ -158,6 +158,9 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 // Required parameters:
 //	viewXPath (search for a view matching this XPath)
 //
+// Optional parameters:
+//	hitTest (use hit-testing to find the target view; default 1)
+//
 - (NSString*) simulateTouch: (NSDictionary *) command  {
 	NSString *viewXPath = [command objectForKey:@"viewXPath"];
 	if (viewXPath == nil)
@@ -165,6 +168,9 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		fprintf(stderr, "### Command 'simulateTouch' requires 'viewXPath' parameter.\n");
 		return @"fail";
 	}
+
+	NSNumber *sectionIndex = [command objectForKey:@"hitTest"];
+	BOOL hitTest = sectionIndex ? [sectionIndex boolValue] : YES;
 	
 	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
 		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
@@ -181,7 +187,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	
 	UIView *view = [views objectAtIndex:0];
 	
-	[self performTouchInView:view];
+	[self performTouchInView:view hitTest:hitTest];
 	return @"pass";
 }
 
@@ -202,7 +208,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 		return @"fail";
 	}
 	
-	printf("=== simulateTouch\n    viewXPath:\n        %s\n",
+	printf("=== simulateSwipe\n    viewXPath:\n        %s\n",
 		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
 	
 	NSArray *views = [self viewsForXPath:viewXPath];
@@ -210,7 +216,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	{
 		fprintf(
 				stderr,
-				"### 'viewXPath' for command 'simulateDrag' selected %ld nodes, where exactly 1 is required.\n",
+				"### 'viewXPath' for command 'simulateSwipe' selected %ld nodes, where exactly 1 is required.\n",
 				[views count]);
 		return @"fail";
 	}
