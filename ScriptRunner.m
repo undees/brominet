@@ -10,6 +10,7 @@
 #import "XMLDescription.h"
 #import "XPathQuery.h"
 #import "TouchSynthesis.h"
+#import "NSObject+ClassName.h"
 
 const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 const float MAX_WAIT_ATTEMPTS = 60;

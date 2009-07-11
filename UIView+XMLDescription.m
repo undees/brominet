@@ -7,6 +7,7 @@
 //
 
 #import "UIView+XMLDescription.h"
+#import "NSObject+ClassName.h"
 
 
 @implementation UIView (XMLDescription)
