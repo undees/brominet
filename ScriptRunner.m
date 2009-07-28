@@ -11,6 +11,7 @@
 #import "XPathQuery.h"
 #import "TouchSynthesis.h"
 #import "NSObject+ClassName.h"
+#import "Foundation/Foundation.h"
 
 const float SCRIPT_RUNNER_INTER_COMMAND_DELAY = 0.0;
 const float MAX_WAIT_ATTEMPTS = 60;
@@ -181,7 +182,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	{
 		fprintf(
 				stderr,
-				"### 'viewXPath' for command 'simulateTouch' selected %ld nodes, where exactly 1 is required.\n",
+				"### 'viewXPath' for command 'simulateTouch' selected %d nodes, where exactly 1 is required.\n",
 				[views count]);
 		return @"fail";
 	}
@@ -217,7 +218,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	{
 		fprintf(
 				stderr,
-				"### 'viewXPath' for command 'simulateSwipe' selected %ld nodes, where exactly 1 is required.\n",
+				"### 'viewXPath' for command 'simulateSwipe' selected %d nodes, where exactly 1 is required.\n",
 				[views count]);
 		return @"fail";
 	}
@@ -255,7 +256,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	 indexPathForRow:[rowIndex integerValue]
 	 inSection:[sectionIndex integerValue]];
 	
-	printf("=== scrollToRow\n    viewXPath:\n        %s\n    indexPath: (section: %ld, row: %ld)\n",
+	printf("=== scrollToRow\n    viewXPath:\n        %s\n    indexPath: (section: %d, row: %d)\n",
 		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding],
 		   [indexPath section],
 		   [indexPath row]);
@@ -264,7 +265,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	if([views count] != 1) {
 		fprintf(
 				stderr,
-				"### 'viewXPath' for command 'scrollToRow' selected %ld nodes, where exactly 1 is required.\n",
+				"### 'viewXPath' for command 'scrollToRow' selected %d nodes, where exactly 1 is required.\n",
 				[views count]);
 		return @"fail";
 	}
@@ -320,7 +321,7 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	{
 		fprintf(
 				stderr,
-				"### 'viewXPath' for command 'setText' selected %ld nodes, where exactly 1 is required.\n",
+				"### 'viewXPath' for command 'setText' selected %d nodes, where exactly 1 is required.\n",
 				[views count]);
 		return @"fail";
 	}

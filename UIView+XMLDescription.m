@@ -20,7 +20,7 @@
 }
 
 - (NSString *) xmlDescriptionWithStringPadding:(NSString *)padding {
-	NSMutableString *resultingXML = [NSMutableString stringWithFormat:@"\n%@<%@>", padding, [self className]];
+	NSMutableString *resultingXML = [NSMutableString stringWithFormat:@"\n%@<%s>", padding, NAMEOF(self)];
 	[resultingXML appendString:[self xmlAttributesWithPadding:padding]];
 	
 	//TODO: delegate those to subclasses
@@ -71,7 +71,7 @@
 	else {
 		[resultingXML appendFormat:@"\n%@\t<subviews />", padding];
 	}
-	[resultingXML appendFormat:@"\n%@</%@>", padding, [self className]];
+	[resultingXML appendFormat:@"\n%@</%s>", padding, NAMEOF(self)];
 	return resultingXML;
 }
 
