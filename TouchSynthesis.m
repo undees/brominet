@@ -5,6 +5,12 @@
 //  Created by Matt Gallagher on 23/11/08.
 //  Copyright 2008 Matt Gallagher. All rights reserved.
 //
+//  Permission is given to use this source code file, free of charge, in any
+//  project, commercial or otherwise, entirely at your risk, with the condition
+//  that any redistribution (in part or whole) of source code must retain
+//  this copyright and permission notice. Attribution in compiled projects is
+//  appreciated but not required.
+//
 
 #import "TouchSynthesis.h"
 
@@ -108,10 +114,20 @@
 @interface GSEventProxy : NSObject
 {
 @public
-	int ignored1[5];
-	float x;
-	float y;
-	int ignored2[24];
+	unsigned int flags;
+	unsigned int type;
+	unsigned int ignored1;
+	float x1;
+	float y1;
+	float x2;
+	float y2;
+	unsigned int ignored2[10];
+	unsigned int ignored3[7];
+	float sizeX;
+	float sizeY;
+	float x3;
+	float y3;
+	unsigned int ignored4[3];
 }
 @end
 @implementation GSEventProxy
@@ -136,6 +152,12 @@
 @implementation PublicEvent
 @end
 
+@interface UIEvent (Creation)
+
+- (id)_initWithEvent:(GSEventProxy *)fp8 touches:(id)fp12;
+
+@end
+
 //
 // UIEvent (Synthesize)
 //
@@ -145,30 +167,33 @@
 
 - (id)initWithTouch:(UITouch *)touch
 {
-	self = [super init];
+	CGPoint location = [touch locationInView:touch.window];
+	GSEventProxy *gsEventProxy = [[GSEventProxy alloc] init];
+	gsEventProxy->x1 = location.x;
+	gsEventProxy->y1 = location.y;
+	gsEventProxy->x2 = location.x;
+	gsEventProxy->y2 = location.y;
+	gsEventProxy->x3 = location.x;
+	gsEventProxy->y3 = location.y;
+	gsEventProxy->sizeX = 1.0;
+	gsEventProxy->sizeY = 1.0;
+	gsEventProxy->flags = ([touch phase] == UITouchPhaseEnded) ? 0x1010180 : 0x3010180;
+	gsEventProxy->type = 3001;	
+	
+	//
+	// On SDK versions 3.0 and greater, we need to reallocate as a
+	// UITouchesEvent.
+	//
+	Class touchesEventClass = objc_getClass("UITouchesEvent");
+	if (touchesEventClass && ![[self class] isEqual:touchesEventClass])
+	{
+		[self release];
+		self = [touchesEventClass alloc];
+	}
+	
+	self = [self _initWithEvent:gsEventProxy touches:[NSSet setWithObject:touch]];
 	if (self != nil)
 	{
-		PublicEvent *publicEvent = (PublicEvent *)self;
-		publicEvent->_touches = [[NSMutableSet alloc] initWithObjects:&touch count:1];
-		publicEvent->_timestamp = [NSDate timeIntervalSinceReferenceDate];
-		
-		CGPoint location = [touch locationInView:touch.window];
-		
-		publicEvent->_event = [[GSEventProxy alloc] init];
-		publicEvent->_event->x = location.x;
-		publicEvent->_event->y = location.y;
-
-		CFMutableDictionaryRef dict =
-			CFDictionaryCreateMutable(
-				kCFAllocatorDefault,
-				0,
-				&kCFTypeDictionaryKeyCallBacks,
-				&kCFTypeDictionaryValueCallBacks);
-		
-		CFDictionaryAddValue(dict, touch.view, publicEvent->_touches);
-		CFDictionaryAddValue(dict, touch.window, publicEvent->_touches);
-		
-		publicEvent->_keyedTouches = dict;
 	}
 	return self;
 }
