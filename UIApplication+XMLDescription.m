@@ -12,6 +12,10 @@
 
 @implementation UIApplication (XMLDescription)
 
+#ifndef NAMEOF(obj)
+#define NAMEOF(obj)     object_getClassName(obj)
+#endif
+
 - (NSString *) xmlDescription {
 	NSMutableString *resultingXML = [NSMutableString stringWithFormat:@"\n<%s>", NAMEOF(self)];
 	[resultingXML appendFormat:@"\n\t<address>%d</address>", (NSInteger)self];

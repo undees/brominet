@@ -9,6 +9,9 @@
 #import "UIView+XMLDescription.h"
 #import "NSObject+ClassName.h"
 
+#ifndef NAMEOF(obj)
+#define NAMEOF(obj)     object_getClassName(obj)
+#endif
 
 @implementation UIView (XMLDescription)
 
