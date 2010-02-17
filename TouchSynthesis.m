@@ -142,8 +142,12 @@
 @interface PublicEvent : NSObject
 {
 @public
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 31000
     GSEventProxy           *_event;
+#endif
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 30000
     NSTimeInterval          _timestamp;
+#endif
     NSMutableSet           *_touches;
     CFMutableDictionaryRef  _keyedTouches;
 }
@@ -192,17 +196,17 @@
 	}
 	
 	self = [self _initWithEvent:gsEventProxy touches:[NSSet setWithObject:touch]];
-	if (self != nil)
-	{
-	}
+
 	return self;
 }
 
 - (void)moveLocation
 {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 30000
 	PublicEvent *publicEvent = (PublicEvent *)self;
 	publicEvent->_timestamp = [NSDate timeIntervalSinceReferenceDate];
 	publicEvent->_event->x += 20;
+#endif
 }
 
 @end
