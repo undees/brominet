@@ -26,6 +26,7 @@
 - (void)setPhase:(UITouchPhase)phase;
 - (void)setLocationInWindow:(CGPoint)location;
 - (void)moveLocationInWindow;
+- (void)moveLocationInWindowLeft;
 
 @end
 

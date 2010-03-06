@@ -97,13 +97,27 @@
 //
 // moveLocationInWindow:
 //
-// Adjusts location slightly.
+// Adjusts location to the right
 //
 - (void)moveLocationInWindow
 {
-	CGPoint moveTo = CGPointMake(_locationInWindow.x + 20, _locationInWindow.y);
+	CGPoint moveTo = CGPointMake(_locationInWindow.x + 200, _locationInWindow.y);
 	[self setLocationInWindow:moveTo];
 }
+
+
+//
+// moveLocationInWindowLeft:
+//
+// Adjusts location to the LEFT
+//
+- (void)moveLocationInWindowLeft
+{
+	CGPoint moveTo = CGPointMake(_locationInWindow.x - 200, _locationInWindow.y);
+	[self setLocationInWindow:moveTo];
+}
+
+
 
 @end
 

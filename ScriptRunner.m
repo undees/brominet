@@ -58,7 +58,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	[touch.view touchesBegan:touches withEvent:event];
 	
 	[touch setPhase:UITouchPhaseMoved];
-	[touch moveLocationInWindow];
+
+  // swipe right
+	// [touch moveLocationInWindow];
+
+  //swipe left
+
+  [touch moveLocationInWindowLeft];
+
 	[event moveLocation];
 	[touch.view touchesMoved:touches withEvent:event];
 	
