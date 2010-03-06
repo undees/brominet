@@ -44,12 +44,14 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 }
 
 //
-// performSwipeInView:
+// performLeftSwipeInView:
+//
+// swipe to the LEFT
 //
 // Synthesize a short rightward drag in the center of the specified view. Since there
 // is no API to do this, it's a dirty hack of a job.
 //
-- (void)performSwipeInView:(UIView *)view
+- (void)performLeftSwipeInView:(UIView *)view
 {
 	UITouch *touch = [[UITouch alloc] initInView:view];
 	UIEvent *event = [[UIEvent alloc] initWithTouch:touch];
@@ -58,9 +60,6 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	[touch.view touchesBegan:touches withEvent:event];
 	
 	[touch setPhase:UITouchPhaseMoved];
-
-  // swipe right
-	// [touch moveLocationInWindow];
 
   //swipe left
 
@@ -76,6 +75,39 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 	[touches release];
 	[touch release];
 }
+
+//
+// performSwipeInView:
+//
+// swipe to the RIGHT
+//
+// Synthesize a short rightward drag in the center of the specified view. Since there
+// is no API to do this, it's a dirty hack of a job.
+//
+- (void)performSwipeInView:(UIView *)view
+{
+	UITouch *touch = [[UITouch alloc] initInView:view];
+	UIEvent *event = [[UIEvent alloc] initWithTouch:touch];
+	NSSet *touches = [[NSMutableSet alloc] initWithObjects:&touch count:1];
+	
+	[touch.view touchesBegan:touches withEvent:event];
+	
+	[touch setPhase:UITouchPhaseMoved];
+
+  // swipe right
+	[touch moveLocationInWindow];
+
+	[event moveLocation];
+	[touch.view touchesMoved:touches withEvent:event];
+	
+	[touch setPhase:UITouchPhaseEnded];
+	[touch.view touchesEnded:touches withEvent:event];
+	
+	[event release];
+	[touches release];
+	[touch release];
+}
+
 
 //
 // highlightView
@@ -201,7 +233,42 @@ const float BACKBUTTON_WAIT_DELAY = 0.75;
 }
 
 //
+// simulateLeftSwipe
+//
+// swipe to the LEFT
+//
+- (NSString*) simulateLeftSwipe: (NSDictionary *) command  {
+	NSString *viewXPath = [command objectForKey:@"viewXPath"];
+	if (viewXPath == nil)
+	{
+		fprintf(stderr, "### Command 'simulateSwipe' requires 'viewXPath' parameter.\n");
+		return @"fail";
+	}
+	
+	printf("=== simulateSwipe\n    viewXPath:\n        %s\n",
+		   [viewXPath cStringUsingEncoding:NSUTF8StringEncoding]);
+	
+	NSArray *views = [self viewsForXPath:viewXPath];
+	if([views count] != 1)
+	{
+		fprintf(
+				stderr,
+				"### 'viewXPath' for command 'simulateSwipe' selected %d nodes, where exactly 1 is required.\n",
+				[views count]);
+		return @"fail";
+	}
+	
+	UIView *view = [views objectAtIndex:0];
+	
+	[self performLeftSwipeInView:view];
+	return @"pass";
+}
+
+
+//
 // simulateSwipe
+//
+// swipe to the RIGHT
 //
 // Performs a synthesized rightward swipe in a single view selected
 // by a given XPath query.
