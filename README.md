@@ -1,6 +1,15 @@
 ## Driving Brominet from a Ruby process
 
-First, the shiny, exciting part!  
+First, to see Brominet in action, take a look at the Cucumber
+functional tests for iPhone that
+[Ian Dees presented at OSCON 2009](http://www.oscon.com/oscon2009/public/schedule/detail/8073).
+
+### Instant gratification: test drive the JustPlayed example app
+
+If you just want to test drive Brominet, you can follow the instructions in
+[my fork.](http://github.com/textarcana/justplayed/doc/install)
+
+### Getting Brominet to work with YOUR app
 
 I'm using
  [**my fork of the JustPlayed example application**](http://github.com/textarcana/justplayed)
@@ -9,7 +18,11 @@ I'm using
 
 If you build and start the simulator with
 [**my fork of the JustPlayed example application**](http://github.com/textarcana/justplayed),
-then you should notice a new service running on port 50000. 
+then you should notice a new service running on port 50000.   You can
+then control the app in the simulator, by sending chunks of XML over
+HTTP.  This is all handled by Ian's `encumber.rb` library.
+
+### Remote-controlled iPhone apps
 
 If you build the Brominet-enabled app onto an iPhone, then you can
 control the iPhone over a wi-fi network.  
@@ -30,16 +43,19 @@ can now connect to the Brominet Web service on your iPhone, on port
 ### Test-driving Brominet from the IRB
 
 Here is how to use the IRB to call the app directly and dump the
-XML of the GUI.
+XML of the GUI.  Type or paste the following 3 commands into the IRB.
 
     load 'lib/encumber.rb'
 
     @gui = Encumber::GUI.new 'localhost'
      
-   File.open('encumber_gui.xml', 'w') {|f| f.write(@gui.dump) }
+    File.open('encumber_gui.xml', 'w') {|f| f.write(@gui.dump) }
 
 Then open `encumber_gui.xml` in an XML editor like Firefox or XML
-Spy.
+Spy.  Once you work out which XPaths correspond to the buttons in your
+app, you can start tapping buttons using `Encumber::GUI#press`
+
+    @gui.press '//xpath/to/button'
 
 If you have deployed a Brominet-enabled app on an iPhone, then you can
 use the same procedure to connect to it.
@@ -54,25 +70,11 @@ methods that are implemented in
 
 # Integrating Brominet into your own application
 
-Now the gorey details.
-
-First, to see Brominet in action, take a look at the Cucumber
-functional tests for iPhone that
-[Ian Dees presented at OSCON 2009](http://www.oscon.com/oscon2009/public/schedule/detail/8073).
-
-If you just want to test drive Brominet, you can follow the instructions in
-[my fork.](http://github.com/textarcana/justplayed/doc/install)
-
-It is also recommended to look at
+It is recommended to look at
 [**JustPlayed**](http://github.com/textarcana/justplayed) in order to
 better understand how to use Ian's
 [Encumber](http://github.com/textarcana/justplayed/blob/master/lib/encumber.rb)
 module. 
-
-
-
-
-
 
 ## Download Dependencies
   
