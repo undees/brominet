@@ -1,4 +1,78 @@
+## Driving Brominet from a Ruby process
+
+First, the shiny, exciting part!  
+
+I'm using
+ [**my fork of the JustPlayed example application**](http://github.com/textarcana/justplayed)
+ as an example.  **The procedure outline here is the same for any app
+ into which you've installed Brominet.**
+
+If you build and start the simulator with
+[**my fork of the JustPlayed example application**](http://github.com/textarcana/justplayed),
+then you should notice a new service running on port 50000. 
+
+If you build the Brominet-enabled app onto an iPhone, then you can
+control the iPhone over a wi-fi network.  
+
+To find your iPhone's IP address, follow these instructions.
+
+1. Assuming you are already connected to a wi-fi network, go to Settings > Wi-Fi. 
+
+2. Tap the name of the network to which you are currently connected (the one with a check mark next to
+it).
+
+3. In the DHCP tab, note the IP address of your device.
+
+4. Assuming your computer is connected to the same wi-fi network, you
+can now connect to the Brominet Web service on your iPhone, on port
+50000.
+
+### Test-driving Brominet from the IRB
+
+Here is how to use the IRB to call the app directly and dump the
+XML of the GUI.
+
+    load 'lib/encumber.rb'
+
+    @gui = Encumber::GUI.new 'localhost'
+     
+   File.open('encumber_gui.xml', 'w') {|f| f.write(@gui.dump) }
+
+Then open `encumber_gui.xml` in an XML editor like Firefox or XML
+Spy.
+
+If you have deployed a Brominet-enabled app on an iPhone, then you can
+use the same procedure to connect to it.
+
+    @gui = Encumber::GUI.new '10.0.1.23'
+
+Finally, if you start the the
+[IRB](http://mislav.uniqpath.com/poignant-guide/book/expansion-pak-1.html)
+in the root of my fork of JustPlayed, then you can use the convenience
+methods that are implemented in
+[**my `.irbc` file**](http://github.com/textarcana/justplayed/blob/master/.irbrc).
+
 # Integrating Brominet into your own application
+
+Now the gorey details.
+
+First, to see Brominet in action, take a look at the Cucumber
+functional tests for iPhone that
+[Ian Dees presented at OSCON 2009](http://www.oscon.com/oscon2009/public/schedule/detail/8073).
+
+If you just want to test drive Brominet, you can follow the instructions in
+[my fork.](http://github.com/textarcana/justplayed/doc/install)
+
+It is also recommended to look at
+[**JustPlayed**](http://github.com/textarcana/justplayed) in order to
+better understand how to use Ian's
+[Encumber](http://github.com/textarcana/justplayed/blob/master/lib/encumber.rb)
+module. 
+
+
+
+
+
 
 ## Download Dependencies
   
