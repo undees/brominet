@@ -36,7 +36,7 @@ Do a "Get Info" on the brominet Brominet target, and in Build section, do the fo
 
   1. add this to the Header Search Path: 
 
-                                /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/usr/include/libxml2;
+      /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.0.sdk/usr/include/libxml2;
 
    2. link the libxml2 library to your Frameworks folder
 
@@ -46,17 +46,19 @@ Do a "Get Info" on the brominet Brominet target, and in Build section, do the fo
 
 ### Include the dependencies in project
 
- Now update the app delegate with some ifdefs.  The easiest way to see which ones to add is just look at Ian's app delegate and pick which code you want to include.
+ Now update the app delegate with some ifdefs.  The easiest way to see
+ which files are required, may be to look at the app delegate in
+ [Ian Dees' **JustPlayed** example app,](http://github.com/textarcana/justplayed).
  
  At a minimum, do the following.
 
- 1. add the ifdefs HTTP server include, and invocation to AppDelegate.h
+ 1. add the ifdefs HTTP server include, and invocation to `AppDelegate.h`
 
- 1. add the ifdef for headers to AppDelegate.m
+ 1. add the ifdef for headers to `AppDelegate.m`
 
-  2. add the ifdef to launch the server to AppDelegate.m
+  2. add the ifdef to launch the server to `AppDelegate.m`
 
-  3. add the ifdef stop the server and garbage collect, to AppDelegate.m
+  3. add the ifdef stop the server and garbage collect, to `AppDelegate.m`
 
 ## Troubleshooting
 
@@ -69,13 +71,13 @@ already be including Reachability 2.0.
 
 ## Sources
   
-  1. http://code.google.com/p/bromine/wiki/UsingBromine
+  1. <http://code.google.com/p/bromine/wiki/UsingBromine>
   
-  2. http://forums.pragprog.com/forums/134/topics/3166
+  2. <http://forums.pragprog.com/forums/134/topics/3166>
   
-  2. http://github.com/textarcana/justplayed/tree/master/doc/install/
+  2. <http://github.com/textarcana/justplayed/tree/master/doc/install/>
   
-  3. http://allseeing-i.com/ASIHTTPRequest
+  3. <http://allseeing-i.com/ASIHTTPRequest>
   
-See also http://delicious.com/thefangmonster/brominet
+See also <http://delicious.com/thefangmonster/brominet>
  
