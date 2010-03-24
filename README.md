@@ -2,6 +2,8 @@
 
 How to go about integrating Brominet into your own applications.
 
+_by [Noah Sussman](http://github.com/textarcana)_
+
 It is recommended to look at
 [**JustPlayed**](http://github.com/textarcana/justplayed) in order to
 better understand how to use Ian's
